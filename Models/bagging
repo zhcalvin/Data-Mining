@@ -1,0 +1,43 @@
+=== Run information ===
+
+Scheme:       weka.classifiers.meta.Bagging -P 100 -S 1 -num-slots 1 -I 10 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0
+Relation:     2011CombData-weka.filters.unsupervised.attribute.Remove-R1-3-weka.filters.unsupervised.attribute.Remove-R4-weka.filters.unsupervised.attribute.Remove-R4
+Instances:    930
+Attributes:   17
+              rate
+              dis
+              orgGDP
+              Population
+              Birth_Rate
+              Avg_Life
+              GDP_PC
+              Unemploy_Rate
+              Flat_Rates
+              Price_Rates
+              City_Income
+              Country_income
+              Green_Rate
+              Disasters
+              Stu_Rate_H
+              Low_Income
+              Low_Income_Insurance
+Test mode:    10-fold cross-validation
+
+=== Classifier model (full training set) ===
+
+Bagging with 10 iterations and base learner
+
+weka.classifiers.trees.REPTree -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0
+
+Time taken to build model: 0.05 seconds
+
+=== Cross-validation ===
+=== Summary ===
+
+Correlation coefficient                  0.5694
+Mean absolute error                      0.017 
+Root mean squared error                  0.0404
+Relative absolute error                 64.1306 %
+Root relative squared error             82.1605 %
+Total Number of Instances              930     
+

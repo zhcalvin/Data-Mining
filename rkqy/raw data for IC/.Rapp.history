@@ -1,0 +1,976 @@
+sd(c(5,8,12))
+which.min(c(4,1,6))
+load(".RData")
+read.csv("Project Data.csv")
+ls()
+load(".RData")
+source("/Users/Calvin/Documents/Workbook1.csv")
+read.csv(file="/Users/Calvin/Documents/Workbook1.csv")
+read.csv(file="/Users/Calvin/Documents/Workbook1.csv",header="false")
+read.csv(file="/Users/Calvin/Documents/Workbook1.csv",header=FALSE)
+abc=matrix(1,2)
+abc
+abc=matrix(2,2)
+abc
+abc=matrix( 2,2 )
+abc
+abc=matrix( ,2,2 )
+abc
+abc=[1,2,2,3]
+abc[1,1] = 1
+abc=[abc;abc]
+library(plot3D)
+rm(list=ls(all=TRUE))#
+library(fOptions)#
+library(fExoticOptions)#
+library(scatterplot3d)#
+library(rgl)#
+##################2.1#
+###########Problem 1 (2)#
+#creates n simulations of a Brownian motion in [0,T]#
+n=1000#
+r=0.03 #drift#
+sigma=0.1 #volatility#
+s0=30 #initial value#
+T=1 #time horizon#
+m=T*250   #no of discretizations#
+#stacksize('max')  #
+t=seq(0,T,length=m+1)  #
+t=matrix(t,1,length(t))#
+h=t[2]-t[1]   # time increment#
+dw=sqrt(h)*rnorm(m*n)   #increments of brownian motion#
+dw=matrix(dw,m,n)#
+w0=matrix(0,1,n)#
+comb=rbind(w0,dw)#
+w=apply(comb,2,cumsum) #cumulatively add by column#
+S=matrix( ,m+1,n)#
+for (i in 1:n){#
+   S[ ,i]=s0*exp((r-0.5*sigma^2)*t(t)+sigma*w[ ,i])#
+}#
+ST=S[nrow(S), ]#
+Sim=1/sigma*log(ST)#
+hist(Sim)#
+###########Problem 1 (3)#
+K=35#
+Put=pmax(0,K-ST)#
+PV.Put=Put*exp(-r*T)#
+mean(PV.Put)#
+###########Problem 1 (4)#
+K.flx=seq(min(ST),max(ST),length=100)#
+Put.m=matrix( ,1,n)#
+PV.Put.m=matrix( ,1,n)#
+Price.Put=matrix( ,1,length(K.flx))#
+for(i in 1:length(K.flx)){#
+   Put.m=pmax(0,K.flx[i]-ST)#
+   PV.Put.m=Put.m*exp(-r*T)#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(K.flx,Price.Put, type = "l", main = "European Put Option (fixed maturity T=1)",#
+xlab = "Strike Price K", ylab = "Option Price")#
+T.flx=t#
+for (i in 1:nrow(S)){#
+   Put.m=pmax(0,K-S[i, ])#
+   PV.Put.m=Put.m*exp(-r*T.flx[i])#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(T.flx,Price.Put, type = "l", main = "European Put Option (fixed Strike K=35)",#
+xlab = "Maturity T", ylab = "Option Price")#
+###########Problem 2 (1)#
+## Double Barrier Option:#
+DoubleBarrierOption(TypeFlag = "co", S = s0, X = 30, L = 15,#
+                    U = 40, Time = 1, r = 0.03, b = 0.03, sigma = sigma,#
+                    delta1 = 0, delta2 = 0)#
+###########Problem 2 (2)#
+Nt=5 #time steps+1#
+dt=T/(Nt-1)#
+sigma=0.5#
+K=30#
+L=15#
+R=40#
+up=exp(sigma*sqrt(dt))#
+dn=1/up#
+pr=(exp(r*dt)-dn)/(up-dn)#
+St=matrix( ,Nt,Nt)#S(i,j)is the stock price at t=i-1 after j-1 up moves#
+C=matrix( ,Nt,Nt) #C(i,j)is the call price at t=i-1 after j-1 up moves#
+St[1,1]=s0 #initial stock price#
+#compute stock values#
+for (i in 2:Nt){#
+  St[i,1]=dn*St[i-1,1]#
+  for(j in 2:i){#
+    St[i,j]=up*St[i-1,j-1]#
+  }#
+}#
+#Terminal call option payoff#
+C[Nt, ]=pmax(0,St[Nt, ]-K)#
+#Construct call option price matrix#
+for (i in 1:(Nt-1)){#
+  for (j in 1:(Nt-i)){#
+    C[Nt-i,j]=exp(-r*dt)*(pr*C[Nt-i+1,j+1]+(1-pr)*C[Nt-i+1,j])#
+  }#
+}#
+i=2#
+if (i <=Nt) {#
+  for(j in 1:i){#
+    if(St[i,j]<=15 | St[i,j]>=40){#
+      C[i,j]=0#
+    }#
+  }#
+  if (St[i,1:i]<rep(40,i) && St[i,1:i]>rep(15,i)){#
+    i=i+1#
+  }#
+}#
+###########Problem 2 (3)#
+#crank-nicolson scheme for heat equation u_t=u_{xx}.#
+n=80    #number of x values at which u is computed#
+x=seq(-0.4,0.4,length=n+2)    #range of x values#
+T=1  #
+m=1000    #number of time discretizations#
+t=seq(0,T,length=m+1)  #
+dt=t[2]-t[1]    #delta t#
+dx=x[2]-x[1]    #delta x#
+lambda=0.5*dt/(dx*dx)  #
+u=matrix( ,n+2,m+1)  #
+u[ ,1]=exp(0.5*(2*r/sigma^2-1)*t(x))*pmax(0,exp(t(x)-rep(1,length(x)))) #initial condition#
+A=(1+2*lambda)*diag(1,n,n)    #initialize A matrix#
+A[1,2]=-lambda  #
+A[n-1,n]=-lambda  #
+for (i in 2: (n-1)){#
+  A[i,i-1]=-lambda  #
+  A[i,i+1]=-lambda  #
+}#
+Ainv=solve(A)  #
+#do the same for B#
+B=(1-2*lambda)* diag(1,n,n)   #
+B[1,2]=lambda  #
+B[n-1,n]=lambda  #
+for (i in 2: (n-1)){#
+  B[i,i-1]=lambda  #
+  B[i,i+1]=lambda  #
+}#
+for (j in 1:m){#
+  u[2:(n+1),j+1]=(Ainv*B)%*%u[2:(n+1),j]#
+}#
+u[1, ]=rep(0,length(ncol(u)))#set lower and upper boundaries as zeros#
+u[n+2, ]=rep(0,length(ncol(u)))#
+#The solution of BS PDE#
+K=30#
+s0=30#
+b=-0.5*(2*r/sigma^2-1)#
+a=-0.25*(2*r/sigma^2-1)^2-2*r/sigma^2#
+v=matrix( ,n+2,m+1) #time t price of the down-and-out barrier option #
+v=K*(s0/K)^b*exp(a*t) * u#
+y=K*exp(x)#
+scatterplot3d(y, t, v)#
+plot3d( v)
+library(plot3D)#
+library(animation)#
+#
+saveGIF({#
+  par(mai = c(0.1,0.1,0.1,0.1))#
+  for(i in 1:100){#
+    X <- seq(0, 2*pi, length.out = 100)#
+    Y <- seq(-15, 6, length.out = 100)#
+    M <- mesh(X, Y)#
+    u <- M$x#
+    v <- M$y#
+    # x, y and z grids#
+    x <- (1.16 ^ v) * cos(v) * (1 + cos(u))#
+    y <- (-1.16 ^ v) * sin(v) * (1 + cos(u))#
+    z <- (-2 * 1.16 ^ v) * (1 + sin(u))#
+    # full colored image#
+    surf3D(x, y, z, colvar = z, #
+           col = ramp.col(col = c("red", "red", "orange"), n = 100),#
+           colkey = FALSE, shade = 0.5, expand = 1.2, box = FALSE, #
+           phi = 35, theta = i, lighting = TRUE, ltheta = 560,#
+           lphi = -i)#
+  }#
+}, interval = 0.1, ani.width = 550, ani.height = 350)
+y
+r
+v
+cat(v)
+col(v)
+tim(v)
+dim(v)
+clear
+rm(list=ls(all=TRUE))#
+library(fOptions)#
+library(fExoticOptions)#
+library(scatterplot3d)#
+library(rgl)#
+##################2.1#
+###########Problem 1 (2)#
+#creates n simulations of a Brownian motion in [0,T]#
+n=1000#
+r=0.03 #drift#
+sigma=0.1 #volatility#
+s0=30 #initial value#
+T=1 #time horizon#
+m=T*250   #no of discretizations#
+#stacksize('max')  #
+t=seq(0,T,length=m+1)  #
+t=matrix(t,1,length(t))#
+h=t[2]-t[1]   # time increment#
+dw=sqrt(h)*rnorm(m*n)   #increments of brownian motion#
+dw=matrix(dw,m,n)#
+w0=matrix(0,1,n)#
+comb=rbind(w0,dw)#
+w=apply(comb,2,cumsum) #cumulatively add by column#
+S=matrix( ,m+1,n)#
+for (i in 1:n){#
+   S[ ,i]=s0*exp((r-0.5*sigma^2)*t(t)+sigma*w[ ,i])#
+}#
+ST=S[nrow(S), ]#
+Sim=1/sigma*log(ST)#
+hist(Sim)#
+###########Problem 1 (3)#
+K=35#
+Put=pmax(0,K-ST)#
+PV.Put=Put*exp(-r*T)#
+mean(PV.Put)#
+###########Problem 1 (4)#
+K.flx=seq(min(ST),max(ST),length=100)#
+Put.m=matrix( ,1,n)#
+PV.Put.m=matrix( ,1,n)#
+Price.Put=matrix( ,1,length(K.flx))#
+for(i in 1:length(K.flx)){#
+   Put.m=pmax(0,K.flx[i]-ST)#
+   PV.Put.m=Put.m*exp(-r*T)#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(K.flx,Price.Put, type = "l", main = "European Put Option (fixed maturity T=1)",#
+xlab = "Strike Price K", ylab = "Option Price")#
+T.flx=t#
+for (i in 1:nrow(S)){#
+   Put.m=pmax(0,K-S[i, ])#
+   PV.Put.m=Put.m*exp(-r*T.flx[i])#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(T.flx,Price.Put, type = "l", main = "European Put Option (fixed Strike K=35)",#
+xlab = "Maturity T", ylab = "Option Price")#
+###########Problem 2 (1)#
+## Double Barrier Option:#
+DoubleBarrierOption(TypeFlag = "co", S = s0, X = 30, L = 15,#
+                    U = 40, Time = 1, r = 0.03, b = 0.03, sigma = sigma,#
+                    delta1 = 0, delta2 = 0)#
+###########Problem 2 (2)#
+Nt=5 #time steps+1#
+dt=T/(Nt-1)#
+sigma=0.5#
+K=30#
+L=15#
+R=40#
+up=exp(sigma*sqrt(dt))#
+dn=1/up#
+pr=(exp(r*dt)-dn)/(up-dn)#
+St=matrix( ,Nt,Nt)#S(i,j)is the stock price at t=i-1 after j-1 up moves#
+C=matrix( ,Nt,Nt) #C(i,j)is the call price at t=i-1 after j-1 up moves#
+St[1,1]=s0 #initial stock price#
+#compute stock values#
+for (i in 2:Nt){#
+  St[i,1]=dn*St[i-1,1]#
+  for(j in 2:i){#
+    St[i,j]=up*St[i-1,j-1]#
+  }#
+}#
+#Terminal call option payoff#
+C[Nt, ]=pmax(0,St[Nt, ]-K)#
+#Construct call option price matrix#
+for (i in 1:(Nt-1)){#
+  for (j in 1:(Nt-i)){#
+    C[Nt-i,j]=exp(-r*dt)*(pr*C[Nt-i+1,j+1]+(1-pr)*C[Nt-i+1,j])#
+  }#
+}#
+i=2#
+if (i <=Nt) {#
+  for(j in 1:i){#
+    if(St[i,j]<=15 | St[i,j]>=40){#
+      C[i,j]=0#
+    }#
+  }#
+  if (St[i,1:i]<rep(40,i) && St[i,1:i]>rep(15,i)){#
+    i=i+1#
+  }#
+}#
+###########Problem 2 (3)#
+#crank-nicolson scheme for heat equation u_t=u_{xx}.#
+n=80    #number of x values at which u is computed#
+x=seq(-0.4,0.4,length=n+2)    #range of x values#
+T=1  #
+m=1000    #number of time discretizations#
+t=seq(0,T,length=m+1)  #
+dt=t[2]-t[1]    #delta t#
+dx=x[2]-x[1]    #delta x#
+lambda=0.5*dt/(dx*dx)  #
+u=matrix( ,n+2,m+1)  #
+u[ ,1]=exp(0.5*(2*r/sigma^2-1)*t(x))*pmax(0,exp(t(x)-rep(1,length(x)))) #initial condition#
+A=(1+2*lambda)*diag(1,n,n)    #initialize A matrix#
+A[1,2]=-lambda  #
+A[n-1,n]=-lambda  #
+for (i in 2: (n-1)){#
+  A[i,i-1]=-lambda  #
+  A[i,i+1]=-lambda  #
+}#
+Ainv=solve(A)  #
+#do the same for B#
+B=(1-2*lambda)* diag(1,n,n)   #
+B[1,2]=lambda  #
+B[n-1,n]=lambda  #
+for (i in 2: (n-1)){#
+  B[i,i-1]=lambda  #
+  B[i,i+1]=lambda  #
+}#
+for (j in 1:m){#
+  u[2:(n+1),j+1]=(Ainv*B)%*%u[2:(n+1),j]#
+}#
+u[1, ]=rep(0,length(ncol(u)))#set lower and upper boundaries as zeros#
+u[n+2, ]=rep(0,length(ncol(u)))#
+#The solution of BS PDE#
+K=30#
+s0=30#
+b=-0.5*(2*r/sigma^2-1)#
+a=-0.25*(2*r/sigma^2-1)^2-2*r/sigma^2#
+v=matrix( ,n+2,m+1) #time t price of the down-and-out barrier option #
+v=K*(s0/K)^b*exp(a*t) * u#
+y=K*exp(x)#
+scatterplot3d(y, t, v)#
+plot3d( v)
+data
+data(v)
+library(plot3D)#
+library(animation)#
+#
+saveGIF({#
+  par(mai = c(0.1,0.1,0.1,0.1))#
+  for(i in 1:100){#
+    X <- seq(0, 2*pi, length.out = 100)#
+    Y <- seq(0, 2*pi, length.out = 100)#
+    M <- mesh(X, Y)#
+    u <- M$x#
+    v <- M$y#
+    # x, y and z grids#
+    x <- cos(u) * (3 + cos(u / 2) * sin(v) - sin(u / 2) * sin(2 * v))#
+    y <- sin(u) * (3 + cos(u / 2) * sin(v) - sin(u / 2) * sin(2 * v))#
+    z <- sin(u / 2) * sin(v) + cos(u / 2) * sin(2 * v)#
+    # full colored image#
+    surf3D(x, y, z, colvar = z,#
+           col = ramp.col(col = c("darkred", "orange"), n = 100),#
+           colkey = FALSE, shade = 0.5, expand = 0.5, box = FALSE, #
+           phi = 40, theta = i, lighting = TRUE, ltheta = 560,#
+           lphi = -50)#
+  }#
+}, interval = 0.1, ani.width = 550, ani.height = 350)
+v
+rm(list=ls(all=TRUE))#
+library(fOptions)#
+library(fExoticOptions)#
+library(scatterplot3d)#
+library(rgl)#
+##################2.1#
+###########Problem 1 (2)#
+#creates n simulations of a Brownian motion in [0,T]#
+n=1000#
+r=0.03 #drift#
+sigma=0.1 #volatility#
+s0=30 #initial value#
+T=1 #time horizon#
+m=T*250   #no of discretizations#
+#stacksize('max')  #
+t=seq(0,T,length=m+1)  #
+t=matrix(t,1,length(t))#
+h=t[2]-t[1]   # time increment#
+dw=sqrt(h)*rnorm(m*n)   #increments of brownian motion#
+dw=matrix(dw,m,n)#
+w0=matrix(0,1,n)#
+comb=rbind(w0,dw)#
+w=apply(comb,2,cumsum) #cumulatively add by column#
+S=matrix( ,m+1,n)#
+for (i in 1:n){#
+   S[ ,i]=s0*exp((r-0.5*sigma^2)*t(t)+sigma*w[ ,i])#
+}#
+ST=S[nrow(S), ]#
+Sim=1/sigma*log(ST)#
+hist(Sim)#
+###########Problem 1 (3)#
+K=35#
+Put=pmax(0,K-ST)#
+PV.Put=Put*exp(-r*T)#
+mean(PV.Put)#
+###########Problem 1 (4)#
+K.flx=seq(min(ST),max(ST),length=100)#
+Put.m=matrix( ,1,n)#
+PV.Put.m=matrix( ,1,n)#
+Price.Put=matrix( ,1,length(K.flx))#
+for(i in 1:length(K.flx)){#
+   Put.m=pmax(0,K.flx[i]-ST)#
+   PV.Put.m=Put.m*exp(-r*T)#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(K.flx,Price.Put, type = "l", main = "European Put Option (fixed maturity T=1)",#
+xlab = "Strike Price K", ylab = "Option Price")#
+T.flx=t#
+for (i in 1:nrow(S)){#
+   Put.m=pmax(0,K-S[i, ])#
+   PV.Put.m=Put.m*exp(-r*T.flx[i])#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(T.flx,Price.Put, type = "l", main = "European Put Option (fixed Strike K=35)",#
+xlab = "Maturity T", ylab = "Option Price")#
+###########Problem 2 (1)#
+## Double Barrier Option:#
+DoubleBarrierOption(TypeFlag = "co", S = s0, X = 30, L = 15,#
+                    U = 40, Time = 1, r = 0.03, b = 0.03, sigma = sigma,#
+                    delta1 = 0, delta2 = 0)#
+###########Problem 2 (2)#
+Nt=5 #time steps+1#
+dt=T/(Nt-1)#
+sigma=0.5#
+K=30#
+L=15#
+R=40#
+up=exp(sigma*sqrt(dt))#
+dn=1/up#
+pr=(exp(r*dt)-dn)/(up-dn)#
+St=matrix( ,Nt,Nt)#S(i,j)is the stock price at t=i-1 after j-1 up moves#
+C=matrix( ,Nt,Nt) #C(i,j)is the call price at t=i-1 after j-1 up moves#
+St[1,1]=s0 #initial stock price#
+#compute stock values#
+for (i in 2:Nt){#
+  St[i,1]=dn*St[i-1,1]#
+  for(j in 2:i){#
+    St[i,j]=up*St[i-1,j-1]#
+  }#
+}#
+#Terminal call option payoff#
+C[Nt, ]=pmax(0,St[Nt, ]-K)#
+#Construct call option price matrix#
+for (i in 1:(Nt-1)){#
+  for (j in 1:(Nt-i)){#
+    C[Nt-i,j]=exp(-r*dt)*(pr*C[Nt-i+1,j+1]+(1-pr)*C[Nt-i+1,j])#
+  }#
+}#
+i=2#
+if (i <=Nt) {#
+  for(j in 1:i){#
+    if(St[i,j]<=15 | St[i,j]>=40){#
+      C[i,j]=0#
+    }#
+  }#
+  if (St[i,1:i]<rep(40,i) && St[i,1:i]>rep(15,i)){#
+    i=i+1#
+  }#
+}#
+###########Problem 2 (3)#
+#crank-nicolson scheme for heat equation u_t=u_{xx}.#
+n=80    #number of x values at which u is computed#
+x=seq(-0.4,0.4,length=n+2)    #range of x values#
+T=1  #
+m=1000    #number of time discretizations#
+t=seq(0,T,length=m+1)  #
+dt=t[2]-t[1]    #delta t#
+dx=x[2]-x[1]    #delta x#
+lambda=0.5*dt/(dx*dx)  #
+u=matrix( ,n+2,m+1)  #
+u[ ,1]=exp(0.5*(2*r/sigma^2-1)*t(x))*pmax(0,exp(t(x)-rep(1,length(x)))) #initial condition#
+A=(1+2*lambda)*diag(1,n,n)    #initialize A matrix#
+A[1,2]=-lambda  #
+A[n-1,n]=-lambda  #
+for (i in 2: (n-1)){#
+  A[i,i-1]=-lambda  #
+  A[i,i+1]=-lambda  #
+}#
+Ainv=solve(A)  #
+#do the same for B#
+B=(1-2*lambda)* diag(1,n,n)   #
+B[1,2]=lambda  #
+B[n-1,n]=lambda  #
+for (i in 2: (n-1)){#
+  B[i,i-1]=lambda  #
+  B[i,i+1]=lambda  #
+}#
+for (j in 1:m){#
+  u[2:(n+1),j+1]=(Ainv %*% B)%*%u[2:(n+1),j]#
+}#
+u[1, ]=rep(0,length(ncol(u)))#set lower and upper boundaries as zeros#
+u[n+2, ]=rep(0,length(ncol(u)))#
+#The solution of BS PDE#
+K=30#
+s0=30#
+b=-0.5*(2*r/sigma^2-1)#
+a=-0.25*(2*r/sigma^2-1)^2-2*r/sigma^2#
+v=matrix( ,n+2,m+1) #time t price of the down-and-out barrier option #
+v=K*(s0/K)^b*exp(a*t) * u#
+y=K*exp(x)#
+scatterplot3d(y, t, v)#
+plot3d( v)
+v
+plot3d(v)
+library(plot3D)#
+library(animation)#
+#
+saveGIF({#
+  par(mai = c(0.1,0.1,0.1,0.1))#
+  for(i in 1:100){#
+    X <- seq(0, 2*pi, length.out = 100)#
+    Y <- seq(0, 2*pi, length.out = 100)#
+    M <- mesh(X, Y)#
+    u <- M$x#
+    v <- M$y#
+    # x, y and z grids#
+    x <- cos(u) * (3 + cos(u / 2) * sin(v) - sin(u / 2) * sin(2 * v))#
+    y <- sin(u) * (3 + cos(u / 2) * sin(v) - sin(u / 2) * sin(2 * v))#
+    z <- sin(u / 2) * sin(v) + cos(u / 2) * sin(2 * v)#
+    # full colored image#
+    surf3D(x, y, z, colvar = z,#
+           col = ramp.col(col = c("darkred", "orange"), n = 100),#
+           colkey = FALSE, shade = 0.5, expand = 0.5, box = FALSE, #
+           phi = 40, theta = i, lighting = TRUE, ltheta = 560,#
+           lphi = -50)#
+  }#
+}, interval = 0.1, ani.width = 550, ani.height = 350)
+plot3d
+library(rgl)
+plot3d(v)
+surf3d(v)
+mesh
+mesh()
+library(plot3d)
+library(plot3D)
+xxx = yyy = zzz = c(-1,0,1)
+M = mesh(xxx,yyy,zzz)
+M
+library(plot3D)#
+library(animation)#
+#
+saveGIF({#
+  par(mai = c(0.1,0.1,0.1,0.1))#
+  for(i in 1:100){#
+    X <- seq(0, 2*pi, length.out = 100)#
+    Y <- seq(-15, 6, length.out = 100)#
+    M <- mesh(X, Y)#
+    u <- M$x#
+    v <- M$y#
+    # x, y and z grids#
+    x <- (1.16 ^ v) * cos(v) * (1 + cos(u))#
+    y <- (-1.16 ^ v) * sin(v) * (1 + cos(u))#
+    z <- (-2 * 1.16 ^ v) * (1 + sin(u))#
+    # full colored image#
+    surf3D(x, y, z, colvar = z, #
+           col = ramp.col(col = c("red", "red", "orange"), n = 100),#
+           colkey = FALSE, shade = 0.5, expand = 1.2, box = FALSE, #
+           phi = 35, theta = i, lighting = TRUE, ltheta = 560,#
+           lphi = -i)#
+  }#
+}, interval = 0.1, ani.width = 550, ani.height = 350)
+.
+v
+dim(v)
+x
+xx
+xx = c(1)
+for (i in 1:99){}
+for (i in 1:99){xx[i] = 1}
+xx
+dim(xx)
+col(xx)
+xx = matrix(xx)
+xx
+xx[0]
+xx[100] = 1
+xx = c(xx)
+xx
+xx[100]
+1/100
+xxx=c(1,2,3)
+yyy=c(1,2,3)
+zzz = c(2,2,3)
+plot3d(xxx,yyy,zzz)
+surf3d(xxx,yyy,zzz)
+surf3D(xxx,yyy,zzz)
+surf3D()
+xxx = matrix(xxx)
+yyy = matrix(yyy)
+zzz= matrix(zzz)
+surf3D(xxx,yyy,zzz)
+for(i in 1:99){for (j in 1: 100){ xx[i*100+j] = i + 1}}
+xx
+xx = c(xx)
+for(i in 1:100){yy[i] = i}
+yy = c(1)
+for(i in 1:100){yy[i] = i}
+for(i in 1:99){for (j in 1: 100){ yy[i*100+j] = yy[j]}}
+yy
+v = matrix(V)
+V
+v
+V = c(v)
+V
+plot3d(xx,yy,V)
+v
+rm(list=ls(all=TRUE))#
+library(fOptions)#
+library(fExoticOptions)#
+library(scatterplot3d)#
+library(rgl)#
+##################2.1#
+###########Problem 1 (2)#
+#creates n simulations of a Brownian motion in [0,T]#
+n=1000#
+r=0.03 #drift#
+sigma=0.1 #volatility#
+s0=30 #initial value#
+T=1 #time horizon#
+m=T*250   #no of discretizations#
+#stacksize('max')  #
+t=seq(0,T,length=m+1)  #
+t=matrix(t,1,length(t))#
+h=t[2]-t[1]   # time increment#
+dw=sqrt(h)*rnorm(m*n)   #increments of brownian motion#
+dw=matrix(dw,m,n)#
+w0=matrix(0,1,n)#
+comb=rbind(w0,dw)#
+w=apply(comb,2,cumsum) #cumulatively add by column#
+S=matrix( ,m+1,n)#
+for (i in 1:n){#
+   S[ ,i]=s0*exp((r-0.5*sigma^2)*t(t)+sigma*w[ ,i])#
+}#
+ST=S[nrow(S), ]#
+Sim=1/sigma*log(ST)#
+hist(Sim)#
+###########Problem 1 (3)#
+K=35#
+Put=pmax(0,K-ST)#
+PV.Put=Put*exp(-r*T)#
+mean(PV.Put)#
+###########Problem 1 (4)#
+K.flx=seq(min(ST),max(ST),length=100)#
+Put.m=matrix( ,1,n)#
+PV.Put.m=matrix( ,1,n)#
+Price.Put=matrix( ,1,length(K.flx))#
+for(i in 1:length(K.flx)){#
+   Put.m=pmax(0,K.flx[i]-ST)#
+   PV.Put.m=Put.m*exp(-r*T)#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(K.flx,Price.Put, type = "l", main = "European Put Option (fixed maturity T=1)",#
+xlab = "Strike Price K", ylab = "Option Price")#
+T.flx=t#
+for (i in 1:nrow(S)){#
+   Put.m=pmax(0,K-S[i, ])#
+   PV.Put.m=Put.m*exp(-r*T.flx[i])#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(T.flx,Price.Put, type = "l", main = "European Put Option (fixed Strike K=35)",#
+xlab = "Maturity T", ylab = "Option Price")#
+###########Problem 2 (1)#
+## Double Barrier Option:#
+DoubleBarrierOption(TypeFlag = "co", S = s0, X = 30, L = 15,#
+                    U = 40, Time = 1, r = 0.03, b = 0.03, sigma = sigma,#
+                    delta1 = 0, delta2 = 0)#
+###########Problem 2 (2)#
+Nt=5 #time steps+1#
+dt=T/(Nt-1)#
+sigma=0.5#
+K=30#
+L=15#
+R=40#
+up=exp(sigma*sqrt(dt))#
+dn=1/up#
+pr=(exp(r*dt)-dn)/(up-dn)#
+St=matrix( ,Nt,Nt)#S(i,j)is the stock price at t=i-1 after j-1 up moves#
+C=matrix( ,Nt,Nt) #C(i,j)is the call price at t=i-1 after j-1 up moves#
+St[1,1]=s0 #initial stock price#
+#compute stock values#
+for (i in 2:Nt){#
+  St[i,1]=dn*St[i-1,1]#
+  for(j in 2:i){#
+    St[i,j]=up*St[i-1,j-1]#
+  }#
+}#
+#Terminal call option payoff#
+C[Nt, ]=pmax(0,St[Nt, ]-K)#
+#Construct call option price matrix#
+for (i in 1:(Nt-1)){#
+  for (j in 1:(Nt-i)){#
+    C[Nt-i,j]=exp(-r*dt)*(pr*C[Nt-i+1,j+1]+(1-pr)*C[Nt-i+1,j])#
+  }#
+}#
+i=2#
+if (i <=Nt) {#
+  for(j in 1:i){#
+    if(St[i,j]<=15 | St[i,j]>=40){#
+      C[i,j]=0#
+    }#
+  }#
+  if (St[i,1:i]<rep(40,i) && St[i,1:i]>rep(15,i)){#
+    i=i+1#
+  }#
+}#
+###########Problem 2 (3)#
+#crank-nicolson scheme for heat equation u_t=u_{xx}.#
+n=80    #number of x values at which u is computed#
+x=seq(-0.4,0.4,length=n+2)    #range of x values#
+T=1  #
+m=1000    #number of time discretizations#
+t=seq(0,T,length=m+1)  #
+dt=t[2]-t[1]    #delta t#
+dx=x[2]-x[1]    #delta x#
+lambda=0.5*dt/(dx*dx)  #
+u=matrix( ,n+2,m+1)  #
+u[ ,1]=exp(0.5*(2*r/sigma^2-1)*t(x))*pmax(0,exp(t(x)-rep(1,length(x)))) #initial condition#
+A=(1+2*lambda)*diag(1,n,n)    #initialize A matrix#
+A[1,2]=-lambda  #
+A[n-1,n]=-lambda  #
+for (i in 2: (n-1)){#
+  A[i,i-1]=-lambda  #
+  A[i,i+1]=-lambda  #
+}#
+Ainv=solve(A)  #
+#do the same for B#
+B=(1-2*lambda)* diag(1,n,n)   #
+B[1,2]=lambda  #
+B[n-1,n]=lambda  #
+for (i in 2: (n-1)){#
+  B[i,i-1]=lambda  #
+  B[i,i+1]=lambda  #
+}#
+for (j in 1:m){#
+  u[2:(n+1),j+1]=(Ainv %*% B)%*%u[2:(n+1),j]#
+}#
+u[1, ]=rep(0,length(ncol(u)))#set lower and upper boundaries as zeros#
+u[n+2, ]=rep(0,length(ncol(u)))#
+#The solution of BS PDE#
+K=30#
+s0=30#
+b=-0.5*(2*r/sigma^2-1)#
+a=-0.25*(2*r/sigma^2-1)^2-2*r/sigma^2#
+v=matrix( ,n+2,m+1) #time t price of the down-and-out barrier option #
+v=K*(s0/K)^b*exp(a*t) * u#
+y=K*exp(x)#
+scatterplot3d(y, t, v)#
+plot3d( v)
+v
+dim(v)
+V = c(v)
+V
+xx = c(1:100)
+xx
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = i}
+dim(v)
+xx
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = j}
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = i}
+for(i in 1:82){for (j in 1:1001) yy[(i-1) *1001+j] = j}
+yy=c(1)
+for(i in 1:82){for (j in 1:1001) yy[(i-1) *1001+j] = j}
+yy
+xx
+V
+plot3d(xx,yy,V)
+plot_ly(z = v, type = "surface")
+library(plotly)
+dim(v)
+length(t)
+length(x)
+t
+yy
+for(i in 1:82){for (j in 1:1001) yy[(i-1) *1001+j] = t[j]}
+yy
+x
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = y[i]}
+xx
+y
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = y[i]}
+xx=c(1)
+for(i in 1:82){for (j in 1:1001) xx[(i-1) *1001+j] = y[i]}
+xx
+length(xx)
+length(yy)
+length(V)
+plot3d(xx,yy,V)
+library(plotly)
+plot_ly(z = v, type = "surface")
+df <- data.frame(v)
+df
+df <- setNames( data.frame(v,seq(1,1001),c("Time","Stock","Price","Price"))
+)
+df <- setNames( data.frame(v,seq(1,1001)),c("Time","Stock","Price","Price"))
+df <- setNames( data.frame(v,seq(82,1001)),c("Time","Stock","Price","Price"))
+df <- setNames( data.frame(v),c("Time","Stock","Price","Price"))
+plot_ly(df, x = x, y = y, z = z, color = time, type = "scatter3d")
+plot_ly(df, x = Time, y = Stock, z = Price, color = Price, type = "scatter3d")
+df
+dim(df)
+plot_ly(df, x = Time, y = Stock, z = Price, color = Price, type = "surface")
+plot_ly(df, x = Time, y = Stock, z = Price, color = Price, type = "scatter3d", mode = "markers")
+df <- setNames( data.frame(v),c))
+df <- setNames(data.frame(v), c("x", "y", "z"))
+plot_ly(df, x = x, y = y, z = z, type = "scatter3d", mode = "markers")
+plot_ly(df, type = "surface")
+plot_ly(xx,yy,V,type = "surface")
+xx
+write.table(xx,file="~/Desktop/a")
+write.csv(xx,file="~/Desktop/x.csv")
+write.csv(xx,yy,V,file="~/Desktop/x.csv")
+vvvvv = cbind(xx,yy,V)
+vvvvv
+write.csv(vvvvv,file="~/Desktop/vvvvv.csv")
+plot_ly(df, type = "surface")
+plot3d(xx,yy,v)
+length(t)
+M = matrix(c(1,2,3,4,5,6),col=2)
+M = matrix(c(1,2,3,4,5,6),2,3)
+M
+cm = c(M)
+cm
+M = matrix(c(1,2,3,4,5,6),3,2)
+M
+c(M)
+xx=c(1)
+rm(list=ls(all=TRUE))#
+library(fOptions)#
+library(fExoticOptions)#
+library(scatterplot3d)#
+library(rgl)#
+##################2.1#
+###########Problem 1 (2)#
+#creates n simulations of a Brownian motion in [0,T]#
+n=1000#
+r=0.03 #drift#
+sigma=0.1 #volatility#
+s0=30 #initial value#
+T=1 #time horizon#
+m=T*250   #no of discretizations#
+#stacksize('max')  #
+t=seq(0,T,length=m+1)  #
+t=matrix(t,1,length(t))#
+h=t[2]-t[1]   # time increment#
+dw=sqrt(h)*rnorm(m*n)   #increments of brownian motion#
+dw=matrix(dw,m,n)#
+w0=matrix(0,1,n)#
+comb=rbind(w0,dw)#
+w=apply(comb,2,cumsum) #cumulatively add by column#
+S=matrix( ,m+1,n)#
+for (i in 1:n){#
+   S[ ,i]=s0*exp((r-0.5*sigma^2)*t(t)+sigma*w[ ,i])#
+}#
+ST=S[nrow(S), ]#
+Sim=1/sigma*log(ST)#
+hist(Sim)#
+###########Problem 1 (3)#
+K=35#
+Put=pmax(0,K-ST)#
+PV.Put=Put*exp(-r*T)#
+mean(PV.Put)#
+###########Problem 1 (4)#
+K.flx=seq(min(ST),max(ST),length=100)#
+Put.m=matrix( ,1,n)#
+PV.Put.m=matrix( ,1,n)#
+Price.Put=matrix( ,1,length(K.flx))#
+for(i in 1:length(K.flx)){#
+   Put.m=pmax(0,K.flx[i]-ST)#
+   PV.Put.m=Put.m*exp(-r*T)#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(K.flx,Price.Put, type = "l", main = "European Put Option (fixed maturity T=1)",#
+xlab = "Strike Price K", ylab = "Option Price")#
+T.flx=t#
+for (i in 1:nrow(S)){#
+   Put.m=pmax(0,K-S[i, ])#
+   PV.Put.m=Put.m*exp(-r*T.flx[i])#
+   Price.Put[i]=mean(PV.Put.m)#
+}#
+plot(T.flx,Price.Put, type = "l", main = "European Put Option (fixed Strike K=35)",#
+xlab = "Maturity T", ylab = "Option Price")#
+###########Problem 2 (1)#
+## Double Barrier Option:#
+DoubleBarrierOption(TypeFlag = "co", S = s0, X = 30, L = 15,#
+                    U = 40, Time = 1, r = 0.03, b = 0.03, sigma = sigma,#
+                    delta1 = 0, delta2 = 0)#
+###########Problem 2 (2)#
+Nt=5 #time steps+1#
+dt=T/(Nt-1)#
+sigma=0.5#
+K=30#
+L=15#
+R=40#
+up=exp(sigma*sqrt(dt))#
+dn=1/up#
+pr=(exp(r*dt)-dn)/(up-dn)#
+St=matrix( ,Nt,Nt)#S(i,j)is the stock price at t=i-1 after j-1 up moves#
+C=matrix( ,Nt,Nt) #C(i,j)is the call price at t=i-1 after j-1 up moves#
+St[1,1]=s0 #initial stock price#
+#compute stock values#
+for (i in 2:Nt){#
+  St[i,1]=dn*St[i-1,1]#
+  for(j in 2:i){#
+    St[i,j]=up*St[i-1,j-1]#
+  }#
+}#
+#Terminal call option payoff#
+C[Nt, ]=pmax(0,St[Nt, ]-K)#
+#Construct call option price matrix#
+for (i in 1:(Nt-1)){#
+  for (j in 1:(Nt-i)){#
+    C[Nt-i,j]=exp(-r*dt)*(pr*C[Nt-i+1,j+1]+(1-pr)*C[Nt-i+1,j])#
+  }#
+}#
+i=2#
+if (i <=Nt) {#
+  for(j in 1:i){#
+    if(St[i,j]<=15 | St[i,j]>=40){#
+      C[i,j]=0#
+    }#
+  }#
+  if (St[i,1:i]<rep(40,i) && St[i,1:i]>rep(15,i)){#
+    i=i+1#
+  }#
+}#
+###########Problem 2 (3)#
+#crank-nicolson scheme for heat equation u_t=u_{xx}.#
+n=80    #number of x values at which u is computed#
+x=seq(-0.4,0.4,length=n+2)    #range of x values#
+T=1  #
+m=1000    #number of time discretizations#
+t=seq(0,T,length=m+1)  #
+dt=t[2]-t[1]    #delta t#
+dx=x[2]-x[1]    #delta x#
+lambda=0.5*dt/(dx*dx)  #
+u=matrix( ,n+2,m+1)  #
+u[ ,1]=exp(0.5*(2*r/sigma^2-1)*t(x))*pmax(0,exp(t(x)-rep(1,length(x)))) #initial condition#
+A=(1+2*lambda)*diag(1,n,n)    #initialize A matrix#
+A[1,2]=-lambda  #
+A[n-1,n]=-lambda  #
+for (i in 2: (n-1)){#
+  A[i,i-1]=-lambda  #
+  A[i,i+1]=-lambda  #
+}#
+Ainv=solve(A)  #
+#do the same for B#
+B=(1-2*lambda)* diag(1,n,n)   #
+B[1,2]=lambda  #
+B[n-1,n]=lambda  #
+for (i in 2: (n-1)){#
+  B[i,i-1]=lambda  #
+  B[i,i+1]=lambda  #
+}#
+for (j in 1:m){#
+  u[2:(n+1),j+1]=(Ainv %*% B)%*%u[2:(n+1),j]#
+}#
+u[1, ]=rep(0,length(ncol(u)))#set lower and upper boundaries as zeros#
+u[n+2, ]=rep(0,length(ncol(u)))#
+#The solution of BS PDE#
+K=30#
+s0=30#
+b=-0.5*(2*r/sigma^2-1)#
+a=-0.25*(2*r/sigma^2-1)^2-2*r/sigma^2#
+v=matrix( ,n+2,m+1) #time t price of the down-and-out barrier option #
+v=K*(s0/K)^b*exp(a*t) * u#
+y=K*exp(x)#
+scatterplot3d(y, t, v)#
+plot3d( v)
+dim(v)
+write.csv(v,file="v.csv")
+write.csv(v,file="~/Desktop/v.csv")
+setwd("~/Documents/AI/Proj/rkqy/raw data for IC")
+read.csv("GDP.csv")

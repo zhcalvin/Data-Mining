@@ -1,0 +1,32 @@
+\BOOKMARK [0][]{chapter.4}{1 Introduction}{}% 1
+\BOOKMARK [1][]{section.5}{1.1 Motivation}{chapter.4}% 2
+\BOOKMARK [1][]{section.6}{1.2 Aim}{chapter.4}% 3
+\BOOKMARK [1][]{section.7}{1.3 Contribution}{chapter.4}% 4
+\BOOKMARK [0][]{chapter.8}{2 Background}{}% 5
+\BOOKMARK [1][]{section.9}{2.1 Migration Models}{chapter.8}% 6
+\BOOKMARK [1][]{section.10}{2.2 Research Methods}{chapter.8}% 7
+\BOOKMARK [0][]{chapter.11}{3 Design}{}% 8
+\BOOKMARK [1][]{section.12}{3.1 Parameters Selection}{chapter.11}% 9
+\BOOKMARK [1][]{section.14}{3.2 Principal Components Analysis}{chapter.11}% 10
+\BOOKMARK [1][]{section.28}{3.3 Layouts of Models}{chapter.11}% 11
+\BOOKMARK [0][]{chapter.38}{4 Data Description}{}% 12
+\BOOKMARK [1][]{section.39}{4.1 Data Sets}{chapter.38}% 13
+\BOOKMARK [1][]{section.41}{4.2 Missing Data}{chapter.38}% 14
+\BOOKMARK [0][]{chapter.43}{5 Prediction of Migration Rates}{}% 15
+\BOOKMARK [1][]{section.53}{5.1 Migration Data}{chapter.43}% 16
+\BOOKMARK [1][]{section.55}{5.2 Selecting features}{chapter.43}% 17
+\BOOKMARK [1][]{section.66}{5.3 Modelling}{chapter.43}% 18
+\BOOKMARK [2][]{subsection.67}{5.3.1 Bagging}{section.66}% 19
+\BOOKMARK [2][]{subsection.82}{5.3.2 Linear Regression}{section.66}% 20
+\BOOKMARK [2][]{subsection.95}{5.3.3 Random Forest}{section.66}% 21
+\BOOKMARK [2][]{subsection.109}{5.3.4 Neural Network}{section.66}% 22
+\BOOKMARK [1][]{section.131}{5.4 Future Prediction}{chapter.43}% 23
+\BOOKMARK [1][]{section.138}{5.5 Evaluation}{chapter.43}% 24
+\BOOKMARK [0][]{chapter.164}{6 Individual Predictions}{}% 25
+\BOOKMARK [1][]{section.169}{6.1 Data Preparation}{chapter.164}% 26
+\BOOKMARK [1][]{section.185}{6.2 Methods}{chapter.164}% 27
+\BOOKMARK [1][]{section.186}{6.3 Dimension Reduction}{chapter.164}% 28
+\BOOKMARK [1][]{section.191}{6.4 Modeling}{chapter.164}% 29
+\BOOKMARK [1][]{section.201}{6.5 Evaluation}{chapter.164}% 30
+\BOOKMARK [0][]{chapter.211}{7 Conclusion}{}% 31
+\BOOKMARK [0][]{chapter.212}{8 Future Work}{}% 32
