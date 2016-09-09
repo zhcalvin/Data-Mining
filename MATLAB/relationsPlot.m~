@@ -1,0 +1,13 @@
+% read province 2012fromHenan.csv, GDP data.
+
+% plot GDP and fromHenan Data:
+
+% Normalization
+henan = fromHenan(:,3) * (mean(fromHenan(3)) / mean(fromHenan(:,3))/3)
+
+% Plot:
+plot(GDP2010(:,1),GDP2010(:,2))
+hold on
+plot(GDP2010(:,1),henan)
+
+Title("Migration Rate and")
